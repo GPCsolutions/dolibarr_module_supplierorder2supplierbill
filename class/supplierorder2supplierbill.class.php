@@ -21,12 +21,15 @@ class SupplierOrder2SupplierBill {
 		
 		$nbFacture = 0;
 		$TFiles = array();
-		// Pour chaque id client
+		// Pour chaque id fournisseur
 		foreach($TCommandesFournisseurs as $id_fournisseur => $Tid_commande){
-			$f = $this->facture_create($id_fournisseur, $dateFact);
+			$fournisseur = new Fournisseur($db);
+			$fournisseur->fetch($id_fournisseur);
+						
+			$f = $this->facture_create($fournisseur, $dateFact);
 			$nbFacture++;
 			
-			//Pour chaque id commandes
+			//Pour chaque id commande
 			foreach($Tid_commande as $id_cmd => $val) {
 				// Chargement de la commande
 				$cmd = new CommandeFournisseur($db);
@@ -54,13 +57,12 @@ class SupplierOrder2SupplierBill {
 		return $nbFacture;
 	}
 
-	function facture_create($id_fournisseur, $dateFact) {
+	function facture_create($fournisseur, $dateFact) {
 		global $user, $db, $conf;
 		
 		$f = new FactureFournisseur($db);
-		$f->socid = $id_fournisseur;
+		$f->socid = $fournisseur->id;
 		$f->fetch_thirdparty();
-				
 		
 		// Données obligatoires
 		$f->date = $dateFact;
@@ -69,6 +71,7 @@ class SupplierOrder2SupplierBill {
 		$f->mode_reglement_id = $f->thirdparty->mode_reglement_id;
 		$f->modelpdf = 'crabe';		
 		$f->statut = 0;
+		
 		$f->create($user);
 		
 		return $f;
@@ -92,7 +95,7 @@ class SupplierOrder2SupplierBill {
 			dol_include_once('/fourn/class/fournisseur.commande.class.php');
 			
 			$commande = new CommandeFournisseur($db);
-			$commande->fetch($cmd->origin_id);
+			$commande->fetch($cmd->id);
 			foreach($commande->lines as $line){
 
 				//Prise en compte des services et des lignes libre uniquement

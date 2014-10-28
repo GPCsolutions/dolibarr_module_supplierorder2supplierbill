@@ -133,13 +133,11 @@ $sql.= " AND f.rowid IS NULL";
 if ($socid)
 	$sql.= " AND c.fk_soc = ".$socid;
 
-if ($search_ref_exp) $sql .= natural_search('c.ref', $search_ref_cmd);
+if ($search_ref_cmd) $sql .= natural_search('c.ref', $search_ref_cmd);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 
 $sql.= ' ORDER BY c.ref';
 $sql.= $db->plimit($limit + 1, $offset);
-
-//var_dump($sql); exit;
 
 $resql=$db->query($sql);
 
