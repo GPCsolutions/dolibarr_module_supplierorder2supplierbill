@@ -1,0 +1,240 @@
+<?php
+class SupplierOrder2SupplierBill {
+	function generate_factures($TCommandesFournisseurs, $dateFact=0) {
+		global $conf, $langs, $db, $user;
+		
+		// Inclusion des classes nécessaires
+		dol_include_once('/fourn/class/fournisseur.commande.class.php');
+		dol_include_once('/fourn/class/fournisseur.class.php');
+		dol_include_once('/fourn/class/fournisseur.facture.class.php');
+		dol_include_once('/core/modules/facture/modules_facture.php');
+		
+		// Utilisation du module sous-total si activé
+		if($conf->subtotal->enabled) {
+			dol_include_once('/subtotal/class/actions_subtotal.class.php');
+			$langs->load("subtotal@subtotal");
+			$sub = new ActionsSubtotal();
+		}
+		
+		if(empty($dateFact))
+			$dateFact = dol_now();
+		
+		$nbFacture = 0;
+		$TFiles = array();
+		// Pour chaque id client
+		foreach($TCommandesFournisseurs as $id_fournisseur => $Tid_commande){
+			$f = $this->facture_create($id_fournisseur, $dateFact);
+			$nbFacture++;
+			
+			//Pour chaque id commandes
+			foreach($Tid_commande as $id_cmd => $val) {
+				// Chargement de la commande
+				$cmd = new CommandeFournisseur($db);
+				$cmd->fetch($id_cmd);
+				
+				// Lien avec la facture
+				$f->add_object_linked('order_supplier', $cmd->id);
+				// Ajout du titre
+				$this->facture_add_title($f, $cmd, $sub);
+				// Ajout des lignes
+				$this->facture_add_line($f, $cmd);
+				// Ajout du sous-total
+				$this->facture_add_subtotal($f, $sub);
+			}
+				
+			// Validation de la facture
+			if($conf->global->SHIP2BILL_VALID_INVOICE) $f->validate($user, '', $conf->global->SHIP2BILL_WARHOUSE_TO_USE);
+			
+			// Génération du PDF
+			if(!empty($conf->global->SHIP2BILL_GENERATE_INVOICE_PDF)) $TFiles[] = $this->facture_generate_pdf($f);
+		}
+		
+		if($conf->global->SHIP2BILL_GENERATE_GLOBAL_PDF) $this->generate_global_pdf($TFiles);
+
+		return $nbFacture;
+	}
+
+	function facture_create($id_fournisseur, $dateFact) {
+		global $user, $db, $conf;
+		
+		$f = new FactureFournisseur($db);
+		$f->socid = $id_fournisseur;
+		$f->fetch_thirdparty();
+				
+		
+		// Données obligatoires
+		$f->date = $dateFact;
+		$f->type = 0;
+		$f->cond_reglement_id = (!empty($f->thirdparty->cond_reglement_id) ? $f->thirdparty->cond_reglement_id : 1);
+		$f->mode_reglement_id = $f->thirdparty->mode_reglement_id;
+		$f->modelpdf = 'crabe';		
+		$f->statut = 0;
+		$f->create($user);
+		
+		return $f;
+	}
+	
+	function facture_add_line(&$f, &$cmd) {
+		global $conf, $db;
+		
+		// Pour chaque produit de la commande, ajout d'une ligne de facture
+		foreach($cmd->lines as $l){
+			if($conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS && $l->qty == 0) continue;
+			$orderline = new CommandeFournisseurLigne($db);
+			$orderline->fetch($l->id);
+			
+			if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $l->desc, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1_tx,$l->localtax2_tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
+			else $f->addline($l->desc, $l->subprice, $l->tva_tx,$l->localtax1_tx,$l->localtax2_tx, $l->qty, $l->fk_product, $l->remise_percent,'','',0, '', 'HT', 0, -1, false);
+		}
+		
+		//Récupération des services de la commande si SHIP2BILL_GET_SERVICES_FROM_ORDER
+		if($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER && (float)DOL_VERSION >= 3.5){
+			dol_include_once('/fourn/class/fournisseur.commande.class.php');
+			
+			$commande = new CommandeFournisseur($db);
+			$commande->fetch($cmd->origin_id);
+			foreach($commande->lines as $line){
+
+				//Prise en compte des services et des lignes libre uniquement
+				if($line->fk_product_type == 1 || (empty($line->fk_product_type) && empty($line->fk_product))){
+					
+					$f->addline(
+							$line->desc,
+							$line->price,
+							$line->tva_tx,
+							0,0,
+							$line->qty,
+							$line->fk_product,
+							$line->remise_percent,
+							$line->date_start,
+							$line->date_end,
+							0,0,
+							$line->fk_remise_except,
+							'HT',
+							0,
+							$line->rang,
+							$line->special_code
+					);
+				}
+			}
+		}
+	}
+	
+	function facture_add_title (&$f, &$cmd, &$sub) {
+		global $conf, $langs, $db;
+		
+		// Affichage des références cmdéditions en tant que titre
+		if($conf->global->SHIP2BILL_ADD_SHIPMENT_AS_TITLES) {
+			$title = '';
+			$cmd->fetchObjectLinked('','order_supplier');
+			
+			// Récupération des infos de la commande pour le titre
+			if (! empty($cmd->linkedObjectsIds['order_supplier'][0])) {
+				$ord = new CommandeFournisseur($db);
+				$ord->fetch($cmd->linkedObjectsIds['order_supplier'][0]);
+				$title.= $langs->transnoentities('Order').' '.$ord->ref;
+				if(!empty($ord->ref_client)) $title.= ' / '.$ord->ref_client;
+				if(!empty($ord->date_commande)) $title.= ' ('.dol_print_date($ord->date_commande,'day').')';
+			}
+						
+			// Ajout du titre
+			if($conf->subtotal->enabled) {
+				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $title, 1);
+				else {
+					if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					else $f->addline($title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+				}
+			} else {
+				if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $title, 0, 1, 0);
+				else $f->addline($title, 0, 1);
+			}
+		}
+	}
+
+	function facture_add_subtotal(&$f,&$sub) {
+		global $conf, $langs;
+		
+		// Ajout d'un sous-total par commande
+		if($conf->global->SHIP2BILL_ADD_SHIPMENT_SUBTOTAL) {
+			if($conf->subtotal->enabled) {
+				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $langs->transnoentities('SubTotal'), 99);
+				else {
+					if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					else $f->addline($langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+				}
+			}
+		}
+	}
+	
+	function facture_generate_pdf(&$f) {
+		global $conf, $langs, $db;
+		
+		// Il faut recharger les lignes qui viennent juste d'être créées
+		$f->fetch($f->id);
+		
+		$outputlangs = $langs;
+		if ($conf->global->MAIN_MULTILANGS) {$newlang=$object->client->default_lang;}
+		if (! empty($newlang)) {
+			$outputlangs = new Translate("",$conf);
+			$outputlangs->setDefaultLang($newlang);
+		}
+		$result=facture_pdf_create($db, $f, $f->modelpdf, $outputlangs);
+		
+		if($result > 0) {
+			$objectref = dol_sanitizeFileName($f->ref);
+			$dir = $conf->facture->dir_output . "/" . $objectref;
+			$file = $dir . "/" . $objectref . ".pdf";
+			return $file;
+		}
+		
+		return '';
+	}
+
+	function generate_global_pdf($TFiles) {
+		global $langs, $conf;
+		
+        // Create empty PDF
+        $pdf=pdf_getInstance();
+        if (class_exists('TCPDF'))
+        {
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+        }
+        $pdf->SetFont(pdf_getPDFFont($langs));
+
+        if (! empty($conf->global->MAIN_DISABLE_PDF_COMPRESSION)) $pdf->SetCompression(false);
+
+		// Add all others
+		foreach($TFiles as $file)
+		{
+			// Charge un document PDF depuis un fichier.
+			$pagecount = $pdf->setSourceFile($file);
+			for ($i = 1; $i <= $pagecount; $i++)
+			{
+				$tplidx = $pdf->importPage($i);
+				$s = $pdf->getTemplatesize($tplidx);
+				$pdf->AddPage($s['h'] > $s['w'] ? 'P' : 'L');
+				$pdf->useTemplate($tplidx);
+			}
+		}
+
+		// Create output dir if not exists
+		$diroutputpdf = $conf->ship2bill->multidir_output[$conf->entity];
+		dol_mkdir($diroutputpdf);
+
+		// Save merged file
+		$filename=strtolower(dol_sanitizeFileName($langs->transnoentities("ShipmentBilled")));
+		if ($pagecount)
+		{
+			$now=dol_now();
+			$file=$diroutputpdf.'/'.$filename.'_'.dol_print_date($now,'dayhourlog').'.pdf';
+			$pdf->Output($file,'F');
+			if (! empty($conf->global->MAIN_UMASK))
+			@chmod($file, octdec($conf->global->MAIN_UMASK));
+		}
+		else
+		{
+			setEventMessage($langs->trans('NoPDFAvailableForChecked'),'errors');
+		}
+	}
+}
