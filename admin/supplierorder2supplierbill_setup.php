@@ -76,13 +76,11 @@ if (preg_match('/del_(.*)/',$action,$reg))
 /*
  * View
  */
-$page_name = "supplierorder2supplierbillSetup";
-llxHeader('', $langs->trans($page_name));
+llxHeader('', 'Configuration SupplierOrder2SupplierBill');
 
 // Subheader
-$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'
-    . $langs->trans("BackToModuleList") . '</a>';
-print_fiche_titre($langs->trans($page_name), $linkback);
+$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php"> Retour à la liste des modules</a>';
+print_fiche_titre('Configuration du module SupplierOrder2SupplierBill', $linkback);
 
 // Setup page goes here
 $form=new Form($db);
