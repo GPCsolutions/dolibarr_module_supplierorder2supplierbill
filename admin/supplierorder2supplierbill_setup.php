@@ -17,8 +17,8 @@
  */
 
 /**
- * 	\file		admin/mymodule.php
- * 	\ingroup	mymodule
+ * 	\file		admin/supplierorder2supplierbill.php
+ * 	\ingroup	supplierorder2supplierbill
  * 	\brief		This file is an example module setup page
  * 				Put some comments here
  */
@@ -30,10 +30,9 @@ if (! $res) {
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
-require_once '../lib/mymodule.lib.php';
 
 // Translations
-$langs->load("mymodule@mymodule");
+$langs->load("supplierorder2supplierbill@supplierorder2supplierbill");
 
 // Access control
 if (! $user->admin) {
@@ -77,23 +76,13 @@ if (preg_match('/del_(.*)/',$action,$reg))
 /*
  * View
  */
-$page_name = "MyModuleSetup";
+$page_name = "supplierorder2supplierbillSetup";
 llxHeader('', $langs->trans($page_name));
 
 // Subheader
 $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'
     . $langs->trans("BackToModuleList") . '</a>';
 print_fiche_titre($langs->trans($page_name), $linkback);
-
-// Configuration header
-$head = mymoduleAdminPrepareHead();
-dol_fiche_head(
-    $head,
-    'settings',
-    $langs->trans("Module100000Name"),
-    0,
-    "mymodule@mymodule"
-);
 
 // Setup page goes here
 $form=new Form($db);
@@ -104,20 +93,23 @@ print '<td>'.$langs->trans("Parameters").'</td>'."\n";
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 
-
 // Example with a yes / no select
 $var=!$var;
 print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("ParamLabel").'</td>';
+print '<td>Masque de référence fournisseur</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="300">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_CONSTNAME">';
-print $form->selectyesno("CONSTNAME",$conf->global->CONSTNAME,1);
+print '<input type="hidden" name="action" value="set_MASQUE_REF_FOURN">';
+print '<input type="text" name="MASQUE_REF_FOURN" value="' . $conf->global->MASQUE_REF_FOURN . '" />';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
+
+echo '<tr><td colspan="3" style="text-align: center;">';
+echo '<p style="font-style: italic;"><strong>Exemple de masque :</strong> FRN{yyyy}-{0000} donnera FRN2014-0001</p>';
+echo '</td></tr>';
 
 print '</table>';
 

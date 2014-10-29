@@ -120,7 +120,6 @@ $(document).ready(function() {
 });
 </script>
 <?php
-
 $sql = "SELECT c.rowid, c.ref, c.fk_statut, s.nom as socname, s.rowid as socid";
 $sql.= " FROM " . MAIN_DB_PREFIX . "commande_fournisseur as c";
 $sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON s.rowid = c.fk_soc";

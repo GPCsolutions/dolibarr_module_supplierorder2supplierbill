@@ -69,11 +69,13 @@ class SupplierOrder2SupplierBill {
 		$f->type = 0;
 		$f->cond_reglement_id = (!empty($f->thirdparty->cond_reglement_id) ? $f->thirdparty->cond_reglement_id : 1);
 		$f->mode_reglement_id = $f->thirdparty->mode_reglement_id;
-		$f->modelpdf = 'crabe';		
+		$f->modelpdf = 'crabe';
 		$f->statut = 0;
 		
-		$f->create($user);
+		$f->ref_supplier = $this->getNextValue($db);
 		
+		$f->create($user);
+				
 		return $f;
 	}
 	
@@ -239,5 +241,15 @@ class SupplierOrder2SupplierBill {
 		{
 			setEventMessage($langs->trans('NoPDFAvailableForChecked'),'errors');
 		}
+	}
+
+	function getNextValue($ATMdb){
+		dol_include_once('core/lib/functions2.lib.php');
+	
+		global $conf, $db;
+	
+		$ref = get_next_value($db, $conf->global->MASQUE_REF_FOURN, 'facture_fourn', 'ref_supplier');
+	
+		return $ref;
 	}
 }
