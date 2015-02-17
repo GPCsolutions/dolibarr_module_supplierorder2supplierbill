@@ -138,8 +138,6 @@ if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 $sql.= ' ORDER BY c.ref';
 $sql.= $db->plimit($limit + 1, $offset);
 
-echo $sql;
-
 $resql=$db->query($sql);
 
 if ($resql)
