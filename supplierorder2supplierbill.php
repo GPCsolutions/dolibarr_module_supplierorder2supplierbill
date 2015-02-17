@@ -126,7 +126,7 @@ $sql.= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON s.rowid = c.fk_soc";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON c.rowid = ee.fk_source AND ee.sourcetype = 'order_supplier'";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as f ON f.rowid = ee.fk_target AND ee.targettype = 'invoice_supplier'";
 $sql.= " WHERE c.entity = ".$conf->entity;
-$sql.= " AND c.fk_statut IN (4,5)"; //reçu partiellement ou complètement
+$sql.= " AND c.fk_statut  = 5"; //reçu complètement
 $sql.= " AND f.rowid IS NULL";
 
 if ($socid)
