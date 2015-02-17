@@ -7,7 +7,7 @@ class SupplierOrder2SupplierBill {
 		dol_include_once('/fourn/class/fournisseur.commande.class.php');
 		dol_include_once('/fourn/class/fournisseur.class.php');
 		dol_include_once('/fourn/class/fournisseur.facture.class.php');
-		dol_include_once('/core/modules/facture/modules_facture.php');
+		dol_include_once('/core/modules/supplier_invoice/modules_facturefournisseur.php');
 		
 		// Utilisation du module sous-total si activé
 		if($conf->subtotal->enabled) {
@@ -183,7 +183,7 @@ class SupplierOrder2SupplierBill {
 			$outputlangs = new Translate("",$conf);
 			$outputlangs->setDefaultLang($newlang);
 		}
-		$result=facture_pdf_create($db, $f, $f->modelpdf, $outputlangs);
+		$result=supplier_invoice_pdf_create($db, $f, $f->modelpdf, $outputlangs);
 		
 		if($result > 0) {
 			$objectref = dol_sanitizeFileName($f->ref);
