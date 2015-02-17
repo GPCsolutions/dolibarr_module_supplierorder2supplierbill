@@ -72,8 +72,10 @@ class SupplierOrder2SupplierBill {
 		$f->modelpdf = 'crabe';
 		$f->statut = 0;
 		
-		$f->ref_supplier = $this->getNextValue($db);
+		$f->origin = "order_supplier";
 		
+		$f->ref_supplier = $this->getNextValue($db);
+
 		$f->create($user);
 				
 		return $f;
@@ -88,6 +90,7 @@ class SupplierOrder2SupplierBill {
 			$orderline = new CommandeFournisseurLigne($db);
 			$orderline->fetch($l->id);
 			
+			$f->origin_id = $cmd->id;
 			if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $l->desc, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1_tx,$l->localtax2_tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
 			else $f->addline($l->desc, $l->subprice, $l->tva_tx,$l->localtax1_tx,$l->localtax2_tx, $l->qty, $l->fk_product, $l->remise_percent,'','',0, '', 'HT', 0, -1, false);
 		}
