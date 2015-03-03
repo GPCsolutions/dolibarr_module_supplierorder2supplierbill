@@ -91,6 +91,7 @@ class SupplierOrder2SupplierBill {
 			$orderline->fetch($l->id);
 			
 			$f->origin_id = $cmd->id;
+			$f->origin_line_id = $l->id;
 			if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $l->desc, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1_tx,$l->localtax2_tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
 			else $f->addline($l->desc, $l->subprice, $l->tva_tx,$l->localtax1_tx,$l->localtax2_tx, $l->qty, $l->fk_product, $l->remise_percent,'','',0, '', 'HT', 0, -1, false);
 		}
@@ -102,10 +103,12 @@ class SupplierOrder2SupplierBill {
 			$commande = new CommandeFournisseur($db);
 			$commande->fetch($cmd->id);
 			foreach($commande->lines as $line){
-
+				
 				//Prise en compte des services et des lignes libre uniquement
 				if($line->fk_product_type == 1 || (empty($line->fk_product_type) && empty($line->fk_product))){
 					
+					$f->origin_line_id = $line->id;
+					$f->origin_id = $commande->id;
 					$f->addline(
 							$line->desc,
 							$line->price,
