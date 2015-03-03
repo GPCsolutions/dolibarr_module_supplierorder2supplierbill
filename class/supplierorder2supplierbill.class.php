@@ -26,7 +26,7 @@ class SupplierOrder2SupplierBill {
 			$fournisseur = new Fournisseur($db);
 			$fournisseur->fetch($id_fournisseur);
 						
-			$f = $this->facture_create($fournisseur, $dateFact);
+			$f = $this->facture_create($fournisseur, $dateFact,key($Tid_commande));
 			$nbFacture++;
 			
 			//Pour chaque id commande
@@ -57,7 +57,7 @@ class SupplierOrder2SupplierBill {
 		return $nbFacture;
 	}
 
-	function facture_create($fournisseur, $dateFact) {
+	function facture_create($fournisseur, $dateFact,$id_commande) {
 		global $user, $db, $conf;
 		
 		$f = new FactureFournisseur($db);
@@ -73,6 +73,7 @@ class SupplierOrder2SupplierBill {
 		$f->statut = 0;
 		
 		$f->origin = "order_supplier";
+		$f->origin_id = $id_commande;
 		
 		$f->ref_supplier = $this->getNextValue($db);
 
@@ -90,6 +91,7 @@ class SupplierOrder2SupplierBill {
 			$orderline = new CommandeFournisseurLigne($db);
 			$orderline->fetch($l->id);
 			
+			$f->origin = "order_supplier";
 			$f->origin_id = $cmd->id;
 			$f->origin_line_id = $l->id;
 			if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $l->desc, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1_tx,$l->localtax2_tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
@@ -107,6 +109,7 @@ class SupplierOrder2SupplierBill {
 				//Prise en compte des services et des lignes libre uniquement
 				if($line->fk_product_type == 1 || (empty($line->fk_product_type) && empty($line->fk_product))){
 					
+					$f->origin = "order_supplier";
 					$f->origin_line_id = $line->id;
 					$f->origin_id = $commande->id;
 					$f->addline(
