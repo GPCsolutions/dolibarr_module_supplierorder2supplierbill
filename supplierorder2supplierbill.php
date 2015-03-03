@@ -127,12 +127,17 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON c.rowid = ee.fk_so
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as f ON f.rowid = ee.fk_target AND ee.targettype = 'invoice_supplier'";
 
 if($conf->clinomadic->enabled){
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseur_extrafields as cfe ON cfe.fk_object = c.rowid AND cfe.commande_traite != 1";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseur_extrafields as cfe ON cfe.fk_object = c.rowid";
 }
 
 $sql.= " WHERE c.entity = ".$conf->entity;
 $sql.= " AND c.fk_statut  = 5"; //reçu complètement
 $sql.= " AND f.rowid IS NULL";
+
+if($conf->clinomadic->enabled){
+	$sql.= " AND (cfe.commande_traite != 1 OR cfe.commande_traite IS NULL)";
+}
+
 
 if ($socid)
 	$sql.= " AND c.fk_soc = ".$socid;
