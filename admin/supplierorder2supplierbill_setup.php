@@ -28,6 +28,8 @@ if (! $res) {
     $res = @include '../../../main.inc.php'; // From "custom" directory
 }
 
+global $bc, $conf, $db, $langs, $user;
+
 // Libraries
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 
