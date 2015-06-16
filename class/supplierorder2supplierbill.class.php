@@ -1,5 +1,16 @@
 <?php
-class SupplierOrder2SupplierBill {
+
+/**
+ * Class SupplierOrder2SupplierBill
+ */
+class SupplierOrder2SupplierBill
+{
+	/**
+	 * @param array $TCommandesFournisseurs
+	 * @param int $dateFact
+	 *
+	 * @return int
+	 */
 	function generate_factures($TCommandesFournisseurs, $dateFact=0) {
 		global $conf, $langs, $db, $user;
 		
@@ -57,8 +68,15 @@ class SupplierOrder2SupplierBill {
 		return $nbFacture;
 	}
 
+	/**
+	 * @param Fournisseur $fournisseur
+	 * @param int $dateFact
+	 * @param int $id_commande
+	 *
+	 * @return FactureFournisseur
+	 */
 	function facture_create($fournisseur, $dateFact,$id_commande) {
-		global $user, $db, $conf;
+		global $user, $db;
 		
 		$f = new FactureFournisseur($db);
 		$f->socid = $fournisseur->id;
@@ -81,7 +99,11 @@ class SupplierOrder2SupplierBill {
 				
 		return $f;
 	}
-	
+
+	/**
+	 * @param FactureFournisseur $f
+	 * @param CommandeFournisseur $cmd
+	 */
 	function facture_add_line(&$f, &$cmd) {
 		global $conf, $db;
 		
@@ -94,12 +116,12 @@ class SupplierOrder2SupplierBill {
 			$f->origin = "order_supplier";
 			$f->origin_id = $cmd->id;
 			$f->origin_line_id = $l->id;
-			if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $l->desc, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1_tx,$l->localtax2_tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
+			if((float) DOL_VERSION <= 3.4) $f->addline($f->id, $l->desc, $l->subprice, $l->qty, $l->tva_tx,$l->localtax1_tx,$l->localtax2_tx,$l->fk_product, $l->remise_percent,'','',0,0,'','HT',0,0,-1,0,'',0,0,$orderline->fk_fournprice,$orderline->pa_ht);
 			else $f->addline($l->desc, $l->subprice, $l->tva_tx,$l->localtax1_tx,$l->localtax2_tx, $l->qty, $l->fk_product, $l->remise_percent,'','',0, '', 'HT', 0, -1, false);
 		}
 		
 		//Récupération des services de la commande si SHIP2BILL_GET_SERVICES_FROM_ORDER
-		if($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER && (float)DOL_VERSION >= 3.5){
+		if($conf->global->SHIP2BILL_GET_SERVICES_FROM_ORDER && (float) DOL_VERSION >= 3.5){
 			dol_include_once('/fourn/class/fournisseur.commande.class.php');
 			
 			$commande = new CommandeFournisseur($db);
@@ -112,6 +134,7 @@ class SupplierOrder2SupplierBill {
 					$f->origin = "order_supplier";
 					$f->origin_line_id = $line->id;
 					$f->origin_id = $commande->id;
+					// FIXME: addline takes 16 parameters not 17 in Dolibarr 3.6
 					$f->addline(
 							$line->desc,
 							$line->price,
@@ -133,7 +156,12 @@ class SupplierOrder2SupplierBill {
 			}
 		}
 	}
-	
+
+	/**
+	 * @param FactureFournisseur $f
+	 * @param CommandeFournisseur $cmd
+	 * @param ActionsSubtotal $sub
+	 */
 	function facture_add_title (&$f, &$cmd, &$sub) {
 		global $conf, $langs, $db;
 		
@@ -155,16 +183,21 @@ class SupplierOrder2SupplierBill {
 			if($conf->subtotal->enabled) {
 				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $title, 1);
 				else {
-					if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					if((float) DOL_VERSION <= 3.4) $f->addline($f->id, $title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					// FIXME: addline takes 16 parameters not 18 in Dolibarr 3.6
 					else $f->addline($title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
 				}
 			} else {
-				if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $title, 0, 1, 0);
+				if((float) DOL_VERSION <= 3.4) $f->addline($f->id, $title, 0, 1, 0);
 				else $f->addline($title, 0, 1);
 			}
 		}
 	}
 
+	/**
+	 * @param FactureFournisseur $f
+	 * @param ActionsSubtotal $sub
+	 */
 	function facture_add_subtotal(&$f,&$sub) {
 		global $conf, $langs;
 		
@@ -173,13 +206,19 @@ class SupplierOrder2SupplierBill {
 			if($conf->subtotal->enabled) {
 				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $langs->transnoentities('SubTotal'), 99);
 				else {
-					if((float)DOL_VERSION <= 3.4) $f->addline($f->id, $langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					if((float) DOL_VERSION <= 3.4) $f->addline($f->id, $langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					// FIXME: addline takes 16 parameters not 18 in Dolibarr 3.6
 					else $f->addline($langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
 				}
 			}
 		}
 	}
-	
+
+	/**
+	 * @param FactureFournisseur $f
+	 *
+	 * @return string
+	 */
 	function facture_generate_pdf(&$f) {
 		global $conf, $langs, $db;
 		
@@ -187,7 +226,7 @@ class SupplierOrder2SupplierBill {
 		$f->fetch($f->id);
 		
 		$outputlangs = $langs;
-		if ($conf->global->MAIN_MULTILANGS) {$newlang=$object->client->default_lang;}
+		if ($conf->global->MAIN_MULTILANGS) {$newlang=$f->client->default_lang;}
 		if (! empty($newlang)) {
 			$outputlangs = new Translate("",$conf);
 			$outputlangs->setDefaultLang($newlang);
@@ -204,6 +243,9 @@ class SupplierOrder2SupplierBill {
 		return '';
 	}
 
+	/**
+	 * @param array $TFiles
+	 */
 	function generate_global_pdf($TFiles) {
 		global $langs, $conf;
 		
@@ -211,6 +253,7 @@ class SupplierOrder2SupplierBill {
         $pdf=pdf_getInstance();
         if (class_exists('TCPDF'))
         {
+            /** @var TCPDF $pdf */
             $pdf->setPrintHeader(false);
             $pdf->setPrintFooter(false);
         }
@@ -222,6 +265,7 @@ class SupplierOrder2SupplierBill {
 		foreach($TFiles as $file)
 		{
 			// Charge un document PDF depuis un fichier.
+			/** @var FPDI $pdf */
 			$pagecount = $pdf->setSourceFile($file);
 			for ($i = 1; $i <= $pagecount; $i++)
 			{
@@ -252,10 +296,15 @@ class SupplierOrder2SupplierBill {
 		}
 	}
 
-	function getNextValue($ATMdb){
+	/**
+	 * @param DoliDB $db
+	 *
+	 * @return string
+	 */
+	function getNextValue($db){
 		dol_include_once('core/lib/functions2.lib.php');
 	
-		global $conf, $db;
+		global $conf;
 	
 		$ref = get_next_value($db, $conf->global->MASQUE_REF_FOURN, 'facture_fourn', 'ref_supplier');
 	

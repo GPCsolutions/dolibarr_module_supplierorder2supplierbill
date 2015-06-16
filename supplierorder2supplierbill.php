@@ -30,6 +30,8 @@ dol_include_once('/supplierorder2supplierbill/class/supplierorder2supplierbill.c
 dol_include_once('/core/class/html.formfile.class.php');
 dol_include_once('/core/class/html.form.class.php');
 
+global $bc, $conf, $db, $langs, $user;
+
 $langs->load("deliveries");
 $langs->load("orders");
 $langs->load('companies');

@@ -23,13 +23,15 @@
  * 				Put some comments here
  */
 // Dolibarr environment
-$res = @include("../../main.inc.php"); // From htdocs directory
+$res = @include '../../main.inc.php'; // From htdocs directory
 if (! $res) {
-    $res = @include("../../../main.inc.php"); // From "custom" directory
+    $res = @include '../../../main.inc.php'; // From "custom" directory
 }
 
+global $db, $langs, $user;
+
 // Libraries
-require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
+require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once '../lib/mymodule.lib.php';
 
 // Translations
@@ -67,9 +69,9 @@ print '<div>'.$langs->trans('ATMAbout').'</div>';
 
 dol_fiche_end();
 
-print '<br><center>';
+print '<br><p class="center">';
 print '<a href="http://www.atm-consulting.fr" target="_blank"><img src="../img/ATM_logo.jpg" /></a>';
-print '</center>';
+print '</p>';
 
 llxFooter();
 
