@@ -33,6 +33,7 @@ dol_include_once('/core/class/html.form.class.php');
 $langs->load("deliveries");
 $langs->load("orders");
 $langs->load('companies');
+$langs->load("supplierorder2supplierbill@supplierorder2supplierbill");
 
 // Security check
 if ($user->societe_id) $socid=$user->societe_id;
