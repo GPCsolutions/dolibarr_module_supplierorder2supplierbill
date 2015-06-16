@@ -76,7 +76,7 @@ class SupplierOrder2SupplierBill
 	 * @return FactureFournisseur
 	 */
 	function facture_create($fournisseur, $dateFact,$id_commande) {
-		global $user, $db, $conf;
+		global $user, $db;
 		
 		$f = new FactureFournisseur($db);
 		$f->socid = $fournisseur->id;

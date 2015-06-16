@@ -40,7 +40,7 @@ class modSupplierOrder2SupplierBill extends DolibarrModules
 	 */
 	function __construct($db)
 	{
-        global $langs,$conf;
+        global $conf;
 
         $this->db = $db;
 
@@ -169,7 +169,7 @@ class modSupplierOrder2SupplierBill extends DolibarrModules
 
 		// Permissions
 		$this->rights = array();		// Permission array used by this module
-		$r=0;
+		//$r=0;
 
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
@@ -199,7 +199,7 @@ class modSupplierOrder2SupplierBill extends DolibarrModules
 								'user'=>2);		
 
 		// Exports
-		$r=1;
+		//$r=1;
 
 		// Example:
 		// $this->export_code[$r]=$this->rights_class.'_'.$r;
@@ -228,7 +228,7 @@ class modSupplierOrder2SupplierBill extends DolibarrModules
 	{
 		$sql = array();
 
-		$result=$this->_load_tables('/supplierorder2supplierbill/sql/');
+		$this->_load_tables('/supplierorder2supplierbill/sql/');
 
 		return $this->_init($sql, $options);
 	}
