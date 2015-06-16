@@ -134,6 +134,7 @@ class SupplierOrder2SupplierBill
 					$f->origin = "order_supplier";
 					$f->origin_line_id = $line->id;
 					$f->origin_id = $commande->id;
+					// FIXME: addline takes 16 parameters not 17 in Dolibarr 3.6
 					$f->addline(
 							$line->desc,
 							$line->price,
@@ -183,6 +184,7 @@ class SupplierOrder2SupplierBill
 				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $title, 1);
 				else {
 					if((float) DOL_VERSION <= 3.4) $f->addline($f->id, $title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					// FIXME: addline takes 16 parameters not 18 in Dolibarr 3.6
 					else $f->addline($title, 0,1,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
 				}
 			} else {
@@ -205,6 +207,7 @@ class SupplierOrder2SupplierBill
 				if(method_exists($sub, 'addSubTotalLine')) $sub->addSubTotalLine($f, $langs->transnoentities('SubTotal'), 99);
 				else {
 					if((float) DOL_VERSION <= 3.4) $f->addline($f->id, $langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
+					// FIXME: addline takes 16 parameters not 18 in Dolibarr 3.6
 					else $f->addline($langs->transnoentities('SubTotal'), 0,99,0,0,0,0,0,'','',0,0,'','HT',0,9,-1, 104777);
 				}
 			}
