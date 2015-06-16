@@ -253,6 +253,7 @@ class SupplierOrder2SupplierBill
         $pdf=pdf_getInstance();
         if (class_exists('TCPDF'))
         {
+            /** @var TCPDF $pdf */
             $pdf->setPrintHeader(false);
             $pdf->setPrintFooter(false);
         }
@@ -264,6 +265,7 @@ class SupplierOrder2SupplierBill
 		foreach($TFiles as $file)
 		{
 			// Charge un document PDF depuis un fichier.
+			/** @var FPDI $pdf */
 			$pagecount = $pdf->setSourceFile($file);
 			for ($i = 1; $i <= $pagecount; $i++)
 			{
