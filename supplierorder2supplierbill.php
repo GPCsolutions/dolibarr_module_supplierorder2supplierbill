@@ -39,7 +39,7 @@ $langs->load("supplierorder2supplierbill@supplierorder2supplierbill");
 
 // Security check
 if ($user->societe_id) $socid=$user->societe_id;
-$result = restrictedArea($user, 'commande');
+$result = restrictedArea($user, 'fournisseur', null, null, 'commande');
 
 $hookmanager->initHooks(array('invoicecard'));
 
@@ -230,7 +230,7 @@ if ($resql)
 	}
 
 	print "</table>";
-	if($num > 0) {
+	if($num > 0 && $user->rights->fournisseur->facture->creer) {
 		$f = new Form($db);
 		print '<br><div style="text-align: right;">';
 		print $langs->trans('Date').' : ';
