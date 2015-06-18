@@ -188,8 +188,8 @@ class modSupplierOrder2SupplierBill extends DolibarrModules
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=commercial,fk_leftmenu=orders_suppliers',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'Facturation commandes fournisseur',
-								'mainmenu'=>'products',
-								'leftmenu'=>'sendings',
+								'mainmenu'=>'commercial',
+								'leftmenu'=>'orders_suppliers',
 								'url'=>'/supplierorder2supplierbill/supplierorder2supplierbill.php',
 								'langs'=>'supplierorder2supplierbill@supplierorder2supplierbill',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>100,
